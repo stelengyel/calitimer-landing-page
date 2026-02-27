@@ -1,0 +1,97 @@
+---
+import EmailForm from './EmailForm.astro';
+---
+
+<section class="cta-section" aria-labelledby="cta-heading">
+  <div class="cta-inner">
+    <div class="cta-content">
+      <span class="cta-label" aria-hidden="true">Early Access</span>
+      <h2 id="cta-heading" class="cta-heading">
+        Be the first to know<br />
+        when <em>CaliTimer</em> launches.
+      </h2>
+      <p class="cta-sub">
+        Join the waitlist and get notified the moment CaliTimer
+        hits the App Store.
+      </p>
+      <EmailForm id="secondary-form" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta-section {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 80px 24px;
+  }
+
+  .cta-inner {
+    max-width: 640px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .cta-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ember);
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .cta-heading {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+  }
+
+  .cta-heading em {
+    font-style: italic;
+    background: var(--grad-brand);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .cta-sub {
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  /* Center the form within the section */
+  .cta-content :global(.email-form-wrapper) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cta-content :global(.form-row) {
+    justify-content: center;
+  }
+
+  .cta-content :global(.form-microcopy) {
+    text-align: center;
+  }
+
+  @media (max-width: 600px) {
+    .cta-section {
+      padding: 64px 20px;
+    }
+    /* On mobile, allow form to be full-width */
+    .cta-content :global(.form-row) {
+      width: 100%;
+    }
+    .cta-content :global(.form-input) {
+      width: 100%;
+    }
+  }
+</style>

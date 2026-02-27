@@ -32,12 +32,21 @@ CONVERTKIT_FORM_ID=...
 
 **Design assets** live in `calitimer-design-assets/` as a git submodule. All color tokens, typography, spacing, logo files, and iconography come from there. **Never invent styles that contradict the submodule's style guide.** Before making any visual decisions, read the style guide in that submodule.
 
+**Available image assets** — all in `calitimer-design-assets/assets/app-icons/`:
+- `logo_light.png` — wordmark for use on dark backgrounds (the standard case)
+- `logo_dark.png` — wordmark for use on light backgrounds
+- `CaliTimer_icon-iOS-Default-1024x1024@1x.png` — iOS app icon (light mode)
+- `CaliTimer_icon-iOS-Dark-1024x1024@1x.png` — iOS app icon (dark mode)
+- `1200x630_dark.png` — OG/social preview image, dark background (1200×630); copied to `public/og-image.png`
+- `1200x630_light.png` — OG/social preview image, light background (1200×630)
+
+**Never reference assets outside this folder** (silhouette images in `assets/silhouettes/` must NOT be used on the landing page).
+
 **Page structure** (`src/pages/index.astro`) is a single page with five sections in order:
 1. Hero — headline + primary email CTA (above the fold)
 2. How It Works — 3-step flow
-3. Supported Skills — skill grid
-4. Secondary email CTA — for users who scrolled past the hero
-5. Footer — logo, copyright, privacy link
+3. Secondary email CTA — for users who scrolled past the hero
+4. Footer — logo, copyright, privacy link
 
 **`/privacy`** page must exist (required for App Store review and GDPR compliance).
 

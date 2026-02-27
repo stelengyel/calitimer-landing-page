@@ -151,16 +151,7 @@ The page is a single-page layout. No navigation links, no multi-page routing. Ev
 2. **Hold** — Get into position. The app detects your skill automatically.
 3. **Done** — Your hold time is recorded. No touching required.
 
-### Section 3: Supported Skills
-**Goal:** Show scope; signal quality and specificity to serious athletes.
-
-**Content:** Grid of supported skills with icons or minimal illustrations
-- Handstand
-- Front Lever
-- Planche
-- *(+ more at launch)*
-
-### Section 4: Secondary Email Capture
+### Section 3: Secondary Email Capture
 **Goal:** Catch users who scrolled past the hero without converting.
 
 **Content:**
@@ -168,7 +159,7 @@ The page is a single-page layout. No navigation links, no multi-page routing. Ev
 - Repeated email form (same ConvertKit form ID, deduplicated server-side)
 - Same microcopy as hero
 
-### Section 5: Footer
+### Section 4: Footer
 **Content:**
 - App logo (small)
 - Copyright line
@@ -257,7 +248,7 @@ The following are explicitly deferred to post-launch:
 1. **Setup** — Initialize Astro project, add Tailwind, add `calitimer-design-assets` submodule
 2. **Design system** — Read style guide, configure Tailwind tokens, set up global CSS
 3. **Layout & Hero** — Base layout, hero section with email form (static, no API yet)
-4. **Remaining sections** — How It Works, Supported Skills, secondary CTA, Footer
+4. **Remaining sections** — How It Works, secondary CTA, Footer
 5. **ConvertKit API integration** — Serverless endpoint, form submission with loading/error states
 6. **Privacy page** — Minimal placeholder
 7. **Polish** — Responsive QA, accessibility audit, Lighthouse performance pass

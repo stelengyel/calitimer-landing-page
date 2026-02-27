@@ -1,0 +1,219 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const year = new Date().getFullYear();
+const lastUpdated = 'February 2026';
+---
+
+<BaseLayout
+  title="Privacy Policy — CaliTimer"
+  description="Privacy policy for CaliTimer. We collect only your email address to notify you at launch."
+>
+  <main class="privacy-page">
+    <!-- Header -->
+    <header class="privacy-header">
+      <a href="/" class="back-link" aria-label="Back to CaliTimer home">
+        <img
+          src="/logo_light.png"
+          alt="CaliTimer"
+          width="120"
+          height="153"
+          fetchpriority="high"
+        />
+      </a>
+    </header>
+
+    <!-- Content -->
+    <article class="privacy-content">
+      <div class="label-row">
+        <span class="section-label">Legal</span>
+      </div>
+
+      <h1>Privacy Policy</h1>
+      <p class="last-updated">Last updated: {lastUpdated}</p>
+
+      <section>
+        <h2>Who we are</h2>
+        <p>
+          CaliTimer is an iOS app that uses on-device computer vision to automatically detect and time
+          calisthenics static skills. This privacy policy covers the CaliTimer pre-launch landing page
+          at this domain.
+        </p>
+      </section>
+
+      <section>
+        <h2>What data we collect</h2>
+        <p>
+          We collect only your <strong>email address</strong> when you submit the waitlist signup form.
+          No other personal information is collected. We do not use cookies, analytics scripts, or any
+          third-party tracking on this page.
+        </p>
+      </section>
+
+      <section>
+        <h2>Why we collect it</h2>
+        <p>
+          Your email address is collected solely to notify you when CaliTimer becomes available on the
+          App Store. We will not use your email for any other purpose without your explicit consent.
+        </p>
+      </section>
+
+      <section>
+        <h2>How it's stored</h2>
+        <p>
+          Email addresses are stored securely by <strong>ConvertKit</strong> (our email service provider).
+          ConvertKit processes data in accordance with GDPR and their own
+          <a href="https://convertkit.com/privacy" rel="noopener noreferrer" target="_blank">Privacy Policy</a>.
+          We do not sell, rent, or share your email address with any other third party.
+        </p>
+      </section>
+
+      <section>
+        <h2>Your rights</h2>
+        <p>You have the right to:</p>
+        <ul>
+          <li>Access the personal data we hold about you</li>
+          <li>Request correction of inaccurate data</li>
+          <li>Request deletion of your data at any time</li>
+          <li>Withdraw consent and unsubscribe at any time</li>
+        </ul>
+        <p>
+          To exercise any of these rights, or to unsubscribe, use the unsubscribe link in any email
+          we send you, or contact us directly.
+        </p>
+      </section>
+
+      <section>
+        <h2>Contact</h2>
+        <p>
+          If you have questions about this privacy policy or how your data is handled, please reach
+          out via the contact information provided in any email from CaliTimer.
+        </p>
+      </section>
+
+      <p class="footer-note">&copy; {year} CaliTimer. All rights reserved.</p>
+    </article>
+  </main>
+</BaseLayout>
+
+<style>
+  .privacy-page {
+    min-height: 100dvh;
+    padding: 0 24px 96px;
+  }
+
+  .privacy-header {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 0 48px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .privacy-header a {
+    display: inline-block;
+  }
+
+  .privacy-header img {
+    min-width: 100px;
+    max-width: 120px;
+    height: auto;
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+  }
+
+  .privacy-header img:hover {
+    opacity: 1;
+  }
+
+  .privacy-content {
+    max-width: 720px;
+    margin: 0 auto;
+    padding-top: 64px;
+  }
+
+  .label-row {
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+
+  .last-updated {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 56px;
+  }
+
+  section {
+    margin-bottom: 40px;
+  }
+
+  h2 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+
+  strong {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  a {
+    color: var(--ember);
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+  }
+
+  a:hover {
+    opacity: 0.75;
+  }
+
+  ul {
+    margin: 12px 0 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  li {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  .footer-note {
+    margin-top: 64px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+</style>

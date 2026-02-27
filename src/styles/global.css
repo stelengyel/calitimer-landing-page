@@ -1,0 +1,210 @@
+/* ── Fonts (self-hosted via @fontsource) ── */
+@import '@fontsource/dm-serif-display/400.css';
+@import '@fontsource/dm-serif-display/400-italic.css';
+@import '@fontsource/dm-sans/300.css';
+@import '@fontsource/dm-sans/400.css';
+@import '@fontsource/dm-sans/500.css';
+@import '@fontsource/dm-sans/600.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+
+/* ── Tailwind directives ── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS custom properties ── */
+:root {
+  /* Background & Surface */
+  --midnight:       #0C0906;
+  --deep-navy:      #130E09;
+  --navy:           #1A1208;
+  --surface:        #231810;
+  --surface-raised: #2C1F13;
+  --border:         rgba(255, 255, 255, 0.08);
+  --border-mid:     rgba(255, 255, 255, 0.12);
+
+  /* Brand colours */
+  --ember:          #FF6B2B;
+  --ember-dim:      #D9521A;
+  --ember-glow:     rgba(255, 107, 43, 0.15);
+  --ember-subtle:   rgba(255, 107, 43, 0.08);
+  --amber:          #FFAA3B;
+  --amber-dim:      #D98A20;
+  --gold:           #FFD166;
+  --gold-dim:       #E0B040;
+
+  /* Text */
+  --text-primary:   #FAF3EC;
+  --text-secondary: #B8A090;
+  --text-muted:     #5C4A3A;
+
+  /* Gradients */
+  --grad-brand: linear-gradient(135deg, #FF6B2B 0%, #FFAA3B 50%, #FFD166 100%);
+  --grad-ember: linear-gradient(135deg, #FF6B2B 0%, #FFAA3B 100%);
+  --grad-amber: linear-gradient(135deg, #FFAA3B 0%, #FFD166 100%);
+  --grad-bg:    linear-gradient(160deg, #0C0906 0%, #130E09 40%, #160F08 100%);
+  --grad-card:  linear-gradient(145deg, rgba(44, 31, 19, 0.9) 0%, rgba(26, 18, 8, 0.95) 100%);
+
+  /* Typography */
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  /* Border radius */
+  --radius-sm:   8px;
+  --radius-md:   14px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
+  --radius-pill: 100px;
+}
+
+/* ── Base reset & defaults ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure [hidden] is always respected — component display properties can
+   override Tailwind Preflight's [hidden] rule due to injection order. */
+[hidden] {
+  display: none !important;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--midnight);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.6;
+  min-height: 100dvh;
+  /* Subtle full-page background gradient */
+  background-image: var(--grad-bg);
+}
+
+/* Remove default list styles when used for layout */
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+}
+
+/* Improve media defaults */
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+/* Inherit fonts for form elements */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Focus rings — accessible, on-brand */
+:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar         { width: 6px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   { background: var(--surface-raised); border-radius: 10px; }
+
+/* ── Utility classes ── */
+
+/* Gradient text — apply var(--grad-brand) or var(--grad-ember) as needed */
+.gradient-text {
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-ember {
+  background: var(--grad-ember);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Ambient ember glow — for hero section background decoration */
+.ambient-glow {
+  background: radial-gradient(ellipse, rgba(255, 107, 43, 0.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* Section label (mono uppercase) */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ember);
+}
+
+/* Primary button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--grad-ember);
+  color: #0C0906;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 14px 28px;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn-primary:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  opacity: 0.9;
+}
+
+/* Ghost button */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 13px 28px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+}

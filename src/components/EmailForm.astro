@@ -1,0 +1,271 @@
+---
+interface Props {
+  id?: string;
+}
+const { id = 'email-form' } = Astro.props;
+---
+
+<div class="email-form-wrapper">
+  <form
+    id={id}
+    action="/api/subscribe"
+    method="POST"
+    novalidate
+    aria-label="Email signup form"
+  >
+    <!-- Honeypot — hidden from real users, invisible to screen readers; bots fill it -->
+    <div class="honeypot-field" aria-hidden="true">
+      <label for={`${id}-website`}>Leave this field empty</label>
+      <input
+        type="text"
+        id={`${id}-website`}
+        name="website"
+        tabindex="-1"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="form-row">
+      <label for={`${id}-email`} class="sr-only">Email address</label>
+      <input
+        type="email"
+        id={`${id}-email`}
+        name="email"
+        placeholder="your@email.com"
+        required
+        autocomplete="email"
+        inputmode="email"
+        aria-required="true"
+        aria-describedby={`${id}-microcopy`}
+        class="form-input"
+      />
+      <button type="submit" class="btn-primary form-btn" aria-live="polite">
+        <span class="btn-text">Notify Me at Launch</span>
+        <span class="btn-loading" hidden>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"
+              stroke-dasharray="34" stroke-dashoffset="12" stroke-linecap="round">
+              <animateTransform attributeName="transform" type="rotate"
+                from="0 9 9" to="360 9 9" dur="0.75s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+          Sending…
+        </span>
+      </button>
+    </div>
+
+    <!-- Inline error -->
+    <p id={`${id}-error`} class="form-error" role="alert" hidden>
+      Something went wrong. Please try again.
+    </p>
+  </form>
+
+  <!-- Success state — replaces form on submit -->
+  <div id={`${id}-success`} class="form-success" role="status" tabindex="-1" hidden>
+    <div class="success-icon" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="10" r="9" stroke="#FF6B2B" stroke-width="1.5"/>
+        <path d="M6 10.5l2.5 2.5 5-5.5" stroke="#FF6B2B" stroke-width="1.5"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <p>You're on the list. We'll email you when CaliTimer launches.</p>
+  </div>
+
+  <!-- Microcopy -->
+  <p id={`${id}-microcopy`} class="form-microcopy">
+    Free to join. No spam. Ever.
+  </p>
+</div>
+
+<style>
+  .honeypot-field {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .form-input {
+    flex: 1;
+    min-width: 220px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius-pill);
+    padding: 14px 20px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .form-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .form-input:focus {
+    border-color: var(--ember);
+    box-shadow: 0 0 0 3px var(--ember-subtle);
+  }
+
+  .form-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .btn-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .form-error {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #FF6B6B;
+    font-family: var(--font-body);
+  }
+
+  .form-success {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--ember-subtle);
+    border: 1px solid rgba(255, 107, 43, 0.2);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    font-size: 15px;
+    color: var(--text-secondary);
+  }
+
+  .success-icon {
+    flex-shrink: 0;
+  }
+
+  .form-microcopy {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+  }
+
+  /* Mobile: stack input + button full width */
+  @media (max-width: 480px) {
+    .form-row {
+      flex-direction: column;
+    }
+    .form-input {
+      min-width: 0;
+      width: 100%;
+    }
+    .form-btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  // Astro deduplicates <script> tags — this runs once even when EmailForm
+  // appears multiple times on the page. We find every instance by selector.
+  function initForm(form: HTMLFormElement) {
+    const formId = form.id;
+    const emailInput  = document.getElementById(`${formId}-email`)  as HTMLInputElement;
+    const submitBtn   = form.querySelector('button[type="submit"]')  as HTMLButtonElement;
+    const btnText     = submitBtn.querySelector('.btn-text')         as HTMLElement;
+    const btnLoading  = submitBtn.querySelector('.btn-loading')      as HTMLElement;
+    const errorEl     = document.getElementById(`${formId}-error`)  as HTMLElement;
+    const successEl   = document.getElementById(`${formId}-success`) as HTMLElement;
+    const microcopy   = document.getElementById(`${formId}-microcopy`) as HTMLElement;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Reset any previous error
+      errorEl.hidden = true;
+
+      const email = emailInput.value.trim();
+      if (!email) {
+        showError('Please enter your email address.');
+        emailInput.focus();
+        return;
+      }
+
+      // Capture form data before disabling inputs — disabled fields are
+      // excluded from FormData, so this must happen before setLoading(true).
+      const payload: Record<string, string> = {};
+      new FormData(form).forEach((v, k) => { payload[k] = String(v); });
+
+      setLoading(true);
+
+      try {
+
+        const res = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data: { ok?: boolean; error?: string } = await res.json();
+
+        if (res.ok && data.ok) {
+          form.hidden = true;
+          microcopy.hidden = true;
+          successEl.hidden = false;
+          successEl.focus();
+        } else {
+          throw new Error(data.error ?? 'Something went wrong. Please try again.');
+        }
+      } catch (err) {
+        const message =
+          err instanceof TypeError
+            ? 'Network error. Check your connection and try again.'
+            : err instanceof Error
+              ? err.message
+              : 'Something went wrong. Please try again.';
+        showError(message);
+        setLoading(false);
+      }
+    });
+
+    function setLoading(loading: boolean) {
+      btnText.hidden = loading;
+      btnLoading.hidden = !loading;
+      submitBtn.disabled = loading;
+      emailInput.disabled = loading;
+    }
+
+    function showError(message: string) {
+      errorEl.textContent = message;
+      errorEl.hidden = false;
+    }
+  }
+
+  document
+    .querySelectorAll<HTMLFormElement>('form[action="/api/subscribe"]')
+    .forEach(initForm);
+</script>

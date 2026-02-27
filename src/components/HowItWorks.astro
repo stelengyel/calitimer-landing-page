@@ -1,0 +1,199 @@
+---
+const steps = [
+  {
+    number: '01',
+    title: 'Point',
+    description: 'Open CaliTimer and point your phone at yourself. No setup — just position your camera so your full body is in frame.',
+  },
+  {
+    number: '02',
+    title: 'Hold',
+    description: "Get into position. CaliTimer's computer vision detects your skill automatically and starts timing the moment you hold.",
+  },
+  {
+    number: '03',
+    title: 'Done',
+    description: 'Break position and your hold time is instantly logged. Review your session history and track progress over time.',
+  },
+];
+---
+
+<section class="hiw-section" aria-labelledby="hiw-heading">
+  <div class="hiw-inner">
+    <header class="hiw-header">
+      <span class="section-label" aria-hidden="true">How It Works</span>
+      <h2 id="hiw-heading" class="hiw-heading">
+        Your phone does the timing.<br />
+        <em>You focus on the hold.</em>
+      </h2>
+      <p class="hiw-sub">Three steps. Zero button taps.</p>
+    </header>
+
+    <ol class="steps-grid" role="list">
+      <!-- Step 01 — Point -->
+      <li class="step-card">
+        <div class="step-top">
+          <span class="step-num" aria-hidden="true">01</span>
+          <div class="step-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <!-- Phone with camera -->
+              <rect x="8" y="3" width="12" height="20" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="14" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="11" y1="18" x2="17" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+        <h3 class="step-title">Point</h3>
+        <p class="step-desc">{steps[0].description}</p>
+      </li>
+
+      <!-- Step 02 — Hold -->
+      <li class="step-card">
+        <div class="step-top">
+          <span class="step-num" aria-hidden="true">02</span>
+          <div class="step-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <!-- Abstract figure in hold position -->
+              <circle cx="14" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="14" y1="8.5" x2="14" y2="17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="8" y1="12.5" x2="20" y2="12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="14" y1="17" x2="10" y2="23" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="14" y1="17" x2="18" y2="23" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+        <h3 class="step-title">Hold</h3>
+        <p class="step-desc">{steps[1].description}</p>
+      </li>
+
+      <!-- Step 03 — Done -->
+      <li class="step-card">
+        <div class="step-top">
+          <span class="step-num" aria-hidden="true">03</span>
+          <div class="step-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <!-- Checkmark circle -->
+              <circle cx="14" cy="14" r="10" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M9.5 14l3 3.5 6-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <h3 class="step-title">Done</h3>
+        <p class="step-desc">{steps[2].description}</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<style>
+  .hiw-section {
+    padding: 80px 24px;
+  }
+
+  .hiw-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .hiw-header {
+    margin-bottom: 56px;
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ember);
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .hiw-heading {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 4vw, 44px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+  }
+
+  .hiw-heading em {
+    font-style: italic;
+    color: var(--ember);
+  }
+
+  .hiw-sub {
+    font-size: 16px;
+    color: var(--text-secondary);
+  }
+
+  /* Steps grid */
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .step-card {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 0.2s ease;
+  }
+
+  .step-card:hover {
+    border-color: var(--border-mid);
+  }
+
+  .step-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 4px;
+  }
+
+  .step-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.10em;
+    color: var(--ember);
+  }
+
+  .step-icon {
+    color: var(--ember);
+    opacity: 0.7;
+  }
+
+  .step-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    font-weight: 400;
+  }
+
+  .step-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .steps-grid {
+      grid-template-columns: 1fr;
+    }
+    .hiw-section {
+      padding: 64px 20px;
+    }
+  }
+</style>
