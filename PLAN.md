@@ -108,10 +108,10 @@ Read the style guide in full before writing any code. Every visual decision is d
 > Add `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` to Vercel project settings alongside the ConvertKit vars.
 
 ### Step 10 — Deploy
-- [ ] Connect repo to Vercel
-- [ ] Set all four env vars in Vercel project settings: `CONVERTKIT_API_KEY`, `CONVERTKIT_FORM_ID`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
+- [x] Connect repo to Vercel
+- [x] Set all four env vars in Vercel project settings: `CONVERTKIT_API_KEY`, `CONVERTKIT_FORM_ID`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
 - [ ] Push to `main` — verify automatic deploy triggers
-- [ ] Connect custom domain (once decided)
+
 
 ---
 

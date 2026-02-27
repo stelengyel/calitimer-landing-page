@@ -36,7 +36,7 @@ const { id = 'email-form' } = Astro.props;
         autocomplete="email"
         inputmode="email"
         aria-required="true"
-        aria-describedby={`${id}-microcopy`}
+
         class="form-input"
       />
       <button type="submit" class="btn-primary form-btn" aria-live="polite">
@@ -72,10 +72,6 @@ const { id = 'email-form' } = Astro.props;
     <p>You're on the list. We'll email you when CaliTimer launches.</p>
   </div>
 
-  <!-- Microcopy -->
-  <p id={`${id}-microcopy`} class="form-microcopy">
-    Free to join. No spam. Ever.
-  </p>
 </div>
 
 <style>
@@ -111,7 +107,7 @@ const { id = 'email-form' } = Astro.props;
 
   .form-input {
     flex: 1;
-    min-width: 220px;
+    min-width: 280px;
     background: var(--surface-raised);
     border: 1px solid var(--border-mid);
     border-radius: var(--radius-pill);
@@ -167,14 +163,7 @@ const { id = 'email-form' } = Astro.props;
     flex-shrink: 0;
   }
 
-  .form-microcopy {
-    margin-top: 12px;
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-family: var(--font-body);
-  }
-
-  /* Mobile: stack input + button full width */
+/* Mobile: stack input + button full width */
   @media (max-width: 480px) {
     .form-row {
       flex-direction: column;
@@ -200,7 +189,6 @@ const { id = 'email-form' } = Astro.props;
     const btnLoading  = submitBtn.querySelector('.btn-loading')      as HTMLElement;
     const errorEl     = document.getElementById(`${formId}-error`)  as HTMLElement;
     const successEl   = document.getElementById(`${formId}-success`) as HTMLElement;
-    const microcopy   = document.getElementById(`${formId}-microcopy`) as HTMLElement;
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -234,7 +222,6 @@ const { id = 'email-form' } = Astro.props;
 
         if (res.ok && data.ok) {
           form.hidden = true;
-          microcopy.hidden = true;
           successEl.hidden = false;
           successEl.focus();
         } else {

@@ -1,20 +1,28 @@
 ---
 import EmailForm from './EmailForm.astro';
+
+interface Props {
+  id: string;
+  label?: string;
+  heading: string;
+  subtext: string;
+}
+
+const {
+  id,
+  label,
+  heading,
+  subtext,
+} = Astro.props;
 ---
 
-<section class="cta-section" aria-labelledby="cta-heading">
+<section class="cta-section" aria-labelledby={`${id}-heading`}>
   <div class="cta-inner">
     <div class="cta-content">
-      <span class="cta-label" aria-hidden="true">Early Access</span>
-      <h2 id="cta-heading" class="cta-heading">
-        Be the first to know<br />
-        when <em>CaliTimer</em> launches.
-      </h2>
-      <p class="cta-sub">
-        Join the waitlist and get notified the moment CaliTimer
-        hits the App Store.
-      </p>
-      <EmailForm id="secondary-form" />
+      {label && <span class="cta-label" aria-hidden="true">{label}</span>}
+<h2 id={`${id}-heading`} class="cta-heading" set:html={heading} />
+      <p class="cta-sub">{subtext}</p>
+      <EmailForm id={id} />
     </div>
   </div>
 </section>
@@ -42,7 +50,7 @@ import EmailForm from './EmailForm.astro';
     margin-bottom: 16px;
   }
 
-  .cta-heading {
+.cta-heading {
     font-family: var(--font-display);
     font-size: clamp(28px, 4vw, 40px);
     line-height: 1.1;
@@ -51,7 +59,7 @@ import EmailForm from './EmailForm.astro';
     margin-bottom: 16px;
   }
 
-  .cta-heading em {
+  .cta-heading :global(em) {
     font-style: italic;
     background: var(--grad-brand);
     -webkit-background-clip: text;

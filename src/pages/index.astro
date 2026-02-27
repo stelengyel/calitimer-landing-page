@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Hero from '../components/Hero.astro';
 import HowItWorks from '../components/HowItWorks.astro';
 import SecondaryCTA from '../components/SecondaryCTA.astro';
 import Footer from '../components/Footer.astro';
@@ -8,9 +7,18 @@ import Footer from '../components/Footer.astro';
 
 <BaseLayout>
   <main>
-    <SecondaryCTA />
-    <Hero />
+    <SecondaryCTA
+      id="top-form"
+      label="Early Access"
+      heading={`Be the first to know<br />when <em>CaliTimer</em> launches.`}
+      subtext="Join the waitlist and get notified the moment CaliTimer hits the App Store."
+    />
     <HowItWorks />
+    <SecondaryCTA
+      id="bottom-form"
+      heading={`Your first hold is waiting...`}
+      subtext="Get notified the moment CaliTimer hits the App Store."
+    />
   </main>
   <Footer />
 </BaseLayout>
