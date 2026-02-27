@@ -4,18 +4,6 @@ const year = new Date().getFullYear();
 
 <footer>
   <div class="footer-inner">
-    <div class="footer-brand">
-      <a href="/" aria-label="CaliTimer home">
-        <img
-          src="/logo_light.png"
-          alt="CaliTimer"
-          width="120"
-          height="153"
-          loading="lazy"
-        />
-      </a>
-    </div>
-
     <div class="footer-right">
       <a href="/privacy" class="footer-link">Privacy Policy</a>
       <p class="footer-copy">&copy; {year} CaliTimer. All rights reserved.</p>
@@ -39,15 +27,7 @@ const year = new Date().getFullYear();
     flex-wrap: wrap;
   }
 
-  .footer-brand img {
-    min-width: 100px;
-    max-width: 120px;
-    height: auto;
-    display: block;
-    opacity: 0.85;
-  }
-
-  .footer-right {
+.footer-right {
     display: flex;
     align-items: center;
     gap: 24px;

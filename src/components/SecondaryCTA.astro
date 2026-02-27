@@ -6,6 +6,7 @@ interface Props {
   label?: string;
   heading: string;
   subtext: string;
+  showIcon?: boolean;
 }
 
 const {
@@ -13,12 +14,23 @@ const {
   label,
   heading,
   subtext,
+  showIcon = false,
 } = Astro.props;
 ---
 
 <section class="cta-section" aria-labelledby={`${id}-heading`}>
   <div class="cta-inner">
     <div class="cta-content">
+      {showIcon && (
+        <img
+          src="/logo_light.png"
+          alt=""
+          aria-hidden="true"
+          width="48"
+          height="61"
+          class="cta-icon"
+        />
+      )}
       {label && <span class="cta-label" aria-hidden="true">{label}</span>}
 <h2 id={`${id}-heading`} class="cta-heading" set:html={heading} />
       <p class="cta-sub">{subtext}</p>
@@ -38,6 +50,12 @@ const {
     max-width: 640px;
     margin: 0 auto;
     text-align: center;
+  }
+
+  .cta-icon {
+    display: block;
+    margin: 0 auto 20px;
+    opacity: 0.9;
   }
 
   .cta-label {
