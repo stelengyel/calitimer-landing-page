@@ -8,26 +8,6 @@ import EmailForm from './EmailForm.astro';
 
   <div class="hero-inner">
     <div class="hero-content">
-      <!-- Logo lockup: icon mark + wordmark -->
-      <a href="/" class="hero-logo" aria-label="CaliTimer">
-        <img
-          src="/logo_light.png"
-          alt=""
-          class="hero-logo-mark"
-          width="36"
-          height="36"
-          fetchpriority="high"
-        />
-        <span class="hero-logo-wordmark" aria-hidden="true">
-          <span class="logo-cali">Cali</span><span class="logo-timer">Timer</span>
-        </span>
-      </a>
-
-      <!-- Treatment C: Mono Label + DM Serif headline -->
-      <div class="hero-label-row" aria-label="Category">
-        <span class="mono-label">iOS App &middot; Computer Vision &middot; Calisthenics</span>
-      </div>
-
       <h1 class="hero-headline">
         Train Smarter.<br />
         <em>Just Hold.</em>
@@ -103,50 +83,6 @@ import EmailForm from './EmailForm.astro';
 
   .hero-content {
     max-width: 580px;
-  }
-
-  /* Logo lockup */
-  .hero-logo {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 40px;
-    text-decoration: none;
-  }
-
-  .hero-logo-mark {
-    width: 36px;
-    height: 36px;
-    flex-shrink: 0;
-    opacity: 0.9;
-  }
-
-  .hero-logo-wordmark {
-    font-family: var(--font-display);
-    font-size: 22px;
-    letter-spacing: -0.02em;
-    line-height: 1;
-  }
-
-  .logo-cali {
-    color: var(--text-primary);
-  }
-
-  .logo-timer {
-    color: var(--ember);
-  }
-
-  /* Treatment C — Mono label */
-  .hero-label-row {
-    margin-bottom: 16px;
-  }
-
-  .mono-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ember);
   }
 
   /* Headline */
@@ -270,9 +206,6 @@ import EmailForm from './EmailForm.astro';
   @media (max-width: 600px) {
     .hero {
       padding: 48px 20px 64px;
-    }
-    .hero-logo {
-      margin-bottom: 32px;
     }
     .hero-sub {
       font-size: 16px;
