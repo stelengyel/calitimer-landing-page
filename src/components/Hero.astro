@@ -8,15 +8,19 @@ import EmailForm from './EmailForm.astro';
 
   <div class="hero-inner">
     <div class="hero-content">
-      <!-- Logo -->
+      <!-- Logo lockup: icon mark + wordmark -->
       <a href="/" class="hero-logo" aria-label="CaliTimer">
         <img
           src="/logo_light.png"
-          alt="CaliTimer"
-          width="140"
-          height="179"
+          alt=""
+          class="hero-logo-mark"
+          width="36"
+          height="36"
           fetchpriority="high"
         />
+        <span class="hero-logo-wordmark" aria-hidden="true">
+          <span class="logo-cali">Cali</span><span class="logo-timer">Timer</span>
+        </span>
       </a>
 
       <!-- Treatment C: Mono Label + DM Serif headline -->
@@ -101,16 +105,35 @@ import EmailForm from './EmailForm.astro';
     max-width: 580px;
   }
 
-  /* Logo */
+  /* Logo lockup */
   .hero-logo {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     margin-bottom: 40px;
+    text-decoration: none;
   }
 
-  .hero-logo img {
-    width: 140px;
-    height: auto;
+  .hero-logo-mark {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
     opacity: 0.9;
+  }
+
+  .hero-logo-wordmark {
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .logo-cali {
+    color: var(--text-primary);
+  }
+
+  .logo-timer {
+    color: var(--ember);
   }
 
   /* Treatment C — Mono label */
@@ -250,9 +273,6 @@ import EmailForm from './EmailForm.astro';
     }
     .hero-logo {
       margin-bottom: 32px;
-    }
-    .hero-logo img {
-      width: 120px;
     }
     .hero-sub {
       font-size: 16px;
