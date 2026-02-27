@@ -18,11 +18,15 @@ npm run build      # Production build → dist/
 npm run preview    # Preview the production build locally
 ```
 
-Environment variables required for the ConvertKit API endpoint to function locally — create a `.env` file at the project root:
+Environment variables required for the ConvertKit API endpoint and rate limiting to function locally — create a `.env` file at the project root (see `.env.example` for the template):
 ```
 CONVERTKIT_API_KEY=...
 CONVERTKIT_FORM_ID=...
+UPSTASH_REDIS_REST_URL=...
+UPSTASH_REDIS_REST_TOKEN=...
 ```
+
+The Upstash vars are optional for local dev — rate limiting is silently skipped if they are absent.
 
 ## Architecture
 
@@ -59,6 +63,16 @@ CONVERTKIT_FORM_ID=...
 - **Lighthouse Performance target ≥ 95** — avoid blocking scripts, heavy images, and unnecessary JS
 - Accessibility: WCAG AA contrast (≥ 4.5:1), visible form labels, keyboard navigable
 
+## External Services
+
+| Service | Purpose | Why |
+|---------|---------|-----|
+| **Vercel** (free tier) | Hosting + serverless functions | Native Astro adapter; automatic HTTPS; zero-config deploys on `git push`; free custom domain |
+| **ConvertKit** (free tier) | Email list + subscriber storage | The sole CTA destination; API-driven so the key stays server-side and the form is fully custom-styled |
+| **Upstash Redis** (free tier) | Rate limiting state | Persistent counter shared across all serverless function instances; sliding window algorithm; REST API requires no persistent connection, compatible with edge/serverless |
+
+All credentials are set as environment variables in the Vercel project dashboard — never hardcoded. See `SECURITY.md` for full security decisions and where to obtain each credential.
+
 ## Deployment
 
-Hosted on Vercel (free tier). `CONVERTKIT_API_KEY` and `CONVERTKIT_FORM_ID` are set as environment variables in the Vercel project dashboard — never hardcoded. Git push to `main` triggers automatic redeploy.
+Hosted on Vercel (free tier). All four env vars — `CONVERTKIT_API_KEY`, `CONVERTKIT_FORM_ID`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` — are set in the Vercel project dashboard. Git push to `main` triggers automatic redeploy.

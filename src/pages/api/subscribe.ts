@@ -2,6 +2,11 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
+const JSON_HEADERS = {
+  'Content-Type': 'application/json',
+  'Cache-Control': 'no-store',
+} as const;
+
 // Basic email format check — ConvertKit also validates server-side,
 // but we reject clearly bad input early to avoid unnecessary API calls.
 function isValidEmail(email: string): boolean {
@@ -9,22 +14,22 @@ function isValidEmail(email: string): boolean {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  let body: Record<string, string>;
+  // Accept only JSON; reject other content types with 415.
+  const contentType = request.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) {
+    return new Response(
+      JSON.stringify({ error: 'Unsupported Media Type. Send application/json.' }),
+      { status: 415, headers: JSON_HEADERS }
+    );
+  }
 
+  let body: Record<string, string>;
   try {
-    const contentType = request.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
-      body = await request.json();
-    } else {
-      const formData = await request.formData();
-      body = Object.fromEntries(
-        [...formData.entries()].map(([k, v]) => [k, String(v)])
-      );
-    }
+    body = await request.json();
   } catch {
     return new Response(
       JSON.stringify({ error: 'Invalid request body.' }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
+      { status: 400, headers: JSON_HEADERS }
     );
   }
 
@@ -33,16 +38,24 @@ export const POST: APIRoute = async ({ request }) => {
   if (body.website) {
     return new Response(
       JSON.stringify({ ok: true }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+      { status: 200, headers: JSON_HEADERS }
     );
   }
 
   const email = (body.email ?? '').trim().toLowerCase();
 
+  // RFC 5321 maximum email length is 254 characters.
+  if (email.length > 254) {
+    return new Response(
+      JSON.stringify({ error: 'Please enter a valid email address.' }),
+      { status: 422, headers: JSON_HEADERS }
+    );
+  }
+
   if (!email || !isValidEmail(email)) {
     return new Response(
       JSON.stringify({ error: 'Please enter a valid email address.' }),
-      { status: 422, headers: { 'Content-Type': 'application/json' } }
+      { status: 422, headers: JSON_HEADERS }
     );
   }
 
@@ -54,7 +67,16 @@ export const POST: APIRoute = async ({ request }) => {
     console.error('[subscribe] Missing CONVERTKIT_API_KEY or CONVERTKIT_FORM_ID');
     return new Response(
       JSON.stringify({ error: 'Server configuration error. Please try again later.' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: 500, headers: JSON_HEADERS }
+    );
+  }
+
+  // Guard against a malformed CONVERTKIT_FORM_ID hitting the wrong endpoint.
+  if (!/^\d+$/.test(formId)) {
+    console.error('[subscribe] CONVERTKIT_FORM_ID is not a numeric ID:', formId);
+    return new Response(
+      JSON.stringify({ error: 'Server configuration error. Please try again later.' }),
+      { status: 500, headers: JSON_HEADERS }
     );
   }
 
@@ -73,7 +95,7 @@ export const POST: APIRoute = async ({ request }) => {
     console.error('[subscribe] ConvertKit fetch failed:', err);
     return new Response(
       JSON.stringify({ error: 'Network error. Please try again.' }),
-      { status: 502, headers: { 'Content-Type': 'application/json' } }
+      { status: 502, headers: JSON_HEADERS }
     );
   }
 
@@ -86,7 +108,7 @@ export const POST: APIRoute = async ({ request }) => {
     console.error('[subscribe] Failed to parse ConvertKit response');
     return new Response(
       JSON.stringify({ error: 'Unexpected response from email service. Please try again.' }),
-      { status: 502, headers: { 'Content-Type': 'application/json' } }
+      { status: 502, headers: JSON_HEADERS }
     );
   }
 
@@ -94,13 +116,13 @@ export const POST: APIRoute = async ({ request }) => {
     console.error('[subscribe] ConvertKit error:', ckResponse.status, ckBody);
     return new Response(
       JSON.stringify({ error: 'Could not subscribe. Please try again.' }),
-      { status: 422, headers: { 'Content-Type': 'application/json' } }
+      { status: 422, headers: JSON_HEADERS }
     );
   }
 
   return new Response(
     JSON.stringify({ ok: true }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
+    { status: 200, headers: JSON_HEADERS }
   );
 };
 
@@ -108,6 +130,9 @@ export const POST: APIRoute = async ({ request }) => {
 export const ALL: APIRoute = () => {
   return new Response(
     JSON.stringify({ error: 'Method not allowed.' }),
-    { status: 405, headers: { 'Content-Type': 'application/json', Allow: 'POST' } }
+    {
+      status: 405,
+      headers: { ...JSON_HEADERS, Allow: 'POST' },
+    }
   );
 };

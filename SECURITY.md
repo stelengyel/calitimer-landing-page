@@ -1,160 +1,150 @@
-Security Review: CaliTimer Landing Page
+Security Reference: CaliTimer Landing Page
+==========================================
 
-Overall Assessment
-
-The foundation is solid — API keys are server-side, error messages
-are generic, honeypot is well-implemented, and XSS risk is minimal
-(textContent not innerHTML). However, three significant gaps need
-addressing before this handles real traffic.
+Last reviewed: 2026-02-27
+Status: All findings resolved.
 
 ---
-Findings
 
-CRITICAL
+## Overview
 
-1. No rate limiting on /api/subscribe
-src/pages/api/subscribe.ts has no throttling whatsoever. Any attacker
-can:
-- Exhaust your ConvertKit API quota (free tier = 10k/month calls)
-- Flood your subscriber list with garbage addresses
-- Use your endpoint as a bounce-test oracle (different 200/422
-responses reveal email validity)
-- Abuse it as a spam relay at zero cost to them
-
-This is the highest-priority fix. At Vercel free tier, the pragmatic
-options are: Astro middleware with IP-based token bucket, or
-Cloudflare Turnstile (a free, privacy-respecting CAPTCHA).
+The landing page handles one sensitive operation: email collection via ConvertKit. The attack surface is intentionally minimal — no auth, no database, no third-party scripts. The primary risks are API quota exhaustion, subscriber list pollution, and clickjacking/MIME attacks. All have been mitigated.
 
 ---
-HIGH
 
-2. No HTTP security headers
-src/layouts/BaseLayout.astro:17–54 and all API responses have zero
-security headers. Missing:
+## Architecture Decisions
 
-Header: Content-Security-Policy
-Risk Without It: XSS escalation if a future script is introduced
-────────────────────────────────────────
-Header: X-Frame-Options: DENY
-Risk Without It: Clickjacking
-────────────────────────────────────────
-Header: X-Content-Type-Options: nosniff
-Risk Without It: MIME sniffing attacks
-────────────────────────────────────────
-Header: Referrer-Policy: strict-origin-when-cross-origin
-Risk Without It: Referrer leakage
-────────────────────────────────────────
-Header: Permissions-Policy
-Risk Without It: Unwanted browser feature access
-────────────────────────────────────────
-Header: Strict-Transport-Security
-Risk Without It: SSL strip / MITM
+**API key stays server-side.** The ConvertKit API key is only ever accessed inside the Astro SSR endpoint (`src/pages/api/subscribe.ts`) via `import.meta.env`. It is never bundled into client-side JavaScript.
 
-These are one vercel.json file away from being fixed.
+**No third-party scripts.** Zero external JS is loaded. No analytics, no tracking pixels, no embedded widgets. This eliminates the entire class of third-party supply-chain XSS.
+
+**Custom form, not ConvertKit embed.** ConvertKit's JS embed would require loosening the CSP and add an external script dependency. The custom API proxy keeps full styling control and a strict CSP.
 
 ---
-MEDIUM
 
-3. Weak email validation — no maximum length
-subscribe.ts:8 — the regex /^[^\s@]+@[^\s@]+\.[^\s@]+$/ accepts
-emails of unbounded length. RFC 5321 defines a 254-character maximum.
-A missing length guard means:
-- Oversized payloads hit ConvertKit unnecessarily
-- No defense against degenerate input that could stress the regex
-engine
+## Services
 
-4. API response missing Cache-Control
-subscribe.ts:101–104 — the success response has no Cache-Control:
-no-store header. A misconfigured proxy or CDN could cache a 200
-ok:true and return it to future requests without ever hitting the
-server.
+### Upstash Redis — Rate Limiting
+- **Purpose:** Persistent IP-based rate limit counter shared across all serverless function instances
+- **Plan:** Free tier (10,000 requests/day)
+- **Console:** console.upstash.com
+- **Required env vars:** `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
+- **Configuration:** One database, region closest to users, REST API access only
 
-5. Endpoint accepts dual content-types unnecessarily
-subscribe.ts:15–23 — the client always sends application/json
-(EmailForm.astro:229), but the server also accepts
-multipart/form-data. This wider attack surface is unused and should
-be removed.
+### Vercel — Hosting & Serverless Functions
+- **Purpose:** Hosts the static site and runs the `/api/subscribe` SSR endpoint as a serverless function
+- **Plan:** Free tier (Hobby)
+- **Console:** vercel.com
+- **Required env vars:** `CONVERTKIT_API_KEY`, `CONVERTKIT_FORM_ID`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
+- **Security headers:** Delivered via `vercel.json` header rules (see below)
+- **IP forwarding:** Vercel sets `X-Forwarded-For` on all requests — used by the rate limiter
 
-6. CONVERTKIT_FORM_ID not sanitized before URL interpolation
-subscribe.ts:64 —
-`https://api.convertkit.com/v3/forms/${formId}/subscribe` — if the
-env var ever contains a / or ?, this silently calls a different
-ConvertKit endpoint. Env vars from Vercel's dashboard are trusted,
-but a one-line digit check closes the gap.
+### ConvertKit — Email List
+- **Purpose:** Subscriber storage and email delivery
+- **Plan:** Free tier
+- **Console:** app.convertkit.com
+- **Required env vars:** `CONVERTKIT_API_KEY`, `CONVERTKIT_FORM_ID`
+- **API used:** `POST /v3/forms/{form_id}/subscribe` — `api_key` passed as a body param (ConvertKit v3 convention, not an Authorization header)
 
 ---
-LOW
 
-7. No CORS origin restriction
-The endpoint returns no Access-Control-Allow-Origin header. Browsers
-enforce SOP and block cross-origin calls, but there is no explicit
-restriction. A server-to-server caller can hit the endpoint freely
-regardless — rate limiting addresses this more effectively.
+## Implemented Controls
 
-8. No .env.example file
-Developer hygiene gap. Anyone cloning the repo won't know what
-variables are required without reading the README/CLAUDE.md.
+### 1. Rate Limiting
+**File:** `src/middleware.ts`
+**Severity addressed:** CRITICAL
 
-9. Dependencies unaudited
-No evidence of npm audit having been run against the current
-lockfile.
+Astro middleware intercepts every `POST /api/subscribe` request before it reaches the endpoint. It uses a sliding window algorithm (5 requests per 60 seconds per IP) backed by Upstash Redis.
+
+- Client IP is read from `X-Forwarded-For` (set by Vercel), falling back to `"unknown"`
+- On limit exceeded: returns `429 Too Many Requests` with a `Retry-After` header (seconds until the window resets) and `Cache-Control: no-store`
+- If Upstash env vars are absent (local dev without credentials), rate limiting is silently skipped so development is unaffected
+- `analytics: false` — no usage data sent back to Upstash
+
+### 2. HTTP Security Headers
+**File:** `vercel.json`
+**Severity addressed:** HIGH
+
+Applied to all routes via a catch-all `"source": "/(.*)"` rule.
+
+| Header | Value | Protects Against |
+|--------|-------|-----------------|
+| `Content-Security-Policy` | `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'` | XSS escalation, data injection |
+| `X-Frame-Options` | `DENY` | Clickjacking |
+| `X-Content-Type-Options` | `nosniff` | MIME-type sniffing |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Referrer leakage |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Unwanted browser feature access |
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` | SSL stripping / MITM |
+
+**Note on `style-src 'unsafe-inline'`:** Astro emits scoped component styles as inline `<style>` blocks in the HTML. Removing `'unsafe-inline'` would require a nonce-based CSP and significant build tooling changes. All other directives are strict `'self'`-only.
+
+### 3. Email Length Guard
+**File:** `src/pages/api/subscribe.ts`
+**Severity addressed:** MEDIUM
+
+Emails longer than 254 characters (RFC 5321 maximum) are rejected with `422` before the format regex runs. This prevents degenerate input from stressing the regex engine and avoids unnecessary ConvertKit API calls.
+
+### 4. JSON-Only Content Type
+**File:** `src/pages/api/subscribe.ts`
+**Severity addressed:** MEDIUM
+
+The endpoint previously accepted both `application/json` and `multipart/form-data`. The FormData branch was unused (the client always sends JSON) and represented unnecessary attack surface. The endpoint now rejects any request that isn't `application/json` with `415 Unsupported Media Type`.
+
+### 5. Cache-Control: no-store on All API Responses
+**File:** `src/pages/api/subscribe.ts`
+**Severity addressed:** MEDIUM
+
+All responses from `/api/subscribe` (success, error, rate-limited) include `Cache-Control: no-store`. Implemented via a shared `JSON_HEADERS` constant applied at every return site. Prevents a misconfigured CDN from caching a `200 {"ok":true}` and returning it without ever hitting the server.
+
+### 6. CONVERTKIT_FORM_ID Validation
+**File:** `src/pages/api/subscribe.ts`
+**Severity addressed:** MEDIUM
+
+After reading `CONVERTKIT_FORM_ID` from env, a `/^\d+$/` guard verifies it contains only digits before it is interpolated into the ConvertKit URL. A malformed value (e.g. `abc/evil`) would silently call a different endpoint without this check. On failure: logs server-side, returns `500` with a generic message.
+
+### 7. Honeypot Field
+**File:** `src/components/EmailForm.astro`
+**Severity addressed:** Baseline (pre-existing)
+
+A hidden `website` field is included in the form. It is CSS-hidden, `aria-hidden="true"`, and `tabindex="-1"` so real users never fill it. Bots that auto-populate form fields trigger a silent `200` response — they receive no signal that they were caught.
 
 ---
-Checklist
 
-SECURITY CHECKLIST — CaliTimer Landing Page
-=============================================
+## Intentionally Skipped
 
-CRITICAL
-[ ] Implement rate limiting on POST /api/subscribe
-    Recommended: Cloudflare Turnstile (free, no JS tracking) OR
-    Astro middleware with IP-based sliding window + Upstash Redis
-    Acceptance: >5 requests/IP/minute returns 429 with Retry-After
-header
-
-HIGH
-[ ] Add HTTP security headers via vercel.json (or Astro middleware):
-    [ ] Content-Security-Policy (strict: default-src 'self';
-script-src 'self';
-        style-src 'self' 'unsafe-inline'; img-src 'self' data:;
-font-src 'self')
-    [ ] X-Frame-Options: DENY
-    [ ] X-Content-Type-Options: nosniff
-    [ ] Referrer-Policy: strict-origin-when-cross-origin
-    [ ] Permissions-Policy: camera=(), microphone=(), geolocation=()
-    [ ] Strict-Transport-Security: max-age=31536000;
-includeSubDomains
-
-MEDIUM
-[ ] Add email length guard in subscribe.ts (max 254 chars per RFC
-5321)
-[ ] Add Cache-Control: no-store to all /api/* responses
-[ ] Remove FormData branch from subscribe.ts — client always sends
-JSON;
-    accept application/json only and return 415 otherwise
-[ ] Validate CONVERTKIT_FORM_ID is numeric-only before URL
-interpolation
-    (e.g. /^\d+$/.test(formId))
-
-LOW
-[ ] Add .env.example with placeholder values (no real keys)
-[ ] Run npm audit and resolve any high/critical findings
-[ ] Consider adding explicit CORS: return 403 for non-same-origin
-POST
-    requests (check Origin header against allowed list)
+**CORS origin restriction (#7 in original audit):** The endpoint returns no `Access-Control-Allow-Origin` header. Browsers enforce the Same-Origin Policy and block cross-origin calls from other websites. Server-to-server callers can hit the endpoint freely, but the rate limiter addresses abuse from that vector more effectively than an origin allowlist (which is trivially bypassed server-side anyway).
 
 ---
-What's Already Correct
 
-- API keys are never client-side — import.meta.env.* is server-only
-in the SSR route, .gitignore excludes .env
-- No XSS via error messages — errorEl.textContent (not innerHTML)
-throughout EmailForm.astro:262
-- Honeypot implementation is correct — CSS-hidden, aria-hidden,
-tabindex="-1", silent 200 response
-- No analytics or third-party scripts — zero external JS, no tracking
-surface
-- Generic client error messages — internal ConvertKit errors never
-reach the browser
-- Method restriction — export const ALL returns 405 for non-POST
-methods
+## What Was Correct from the Start
+
+- API keys never reach the client — `import.meta.env.*` is server-only in SSR routes; `.env` is in `.gitignore`
+- No XSS via error messages — `errorEl.textContent` (not `innerHTML`) throughout `EmailForm.astro`
+- Generic client error messages — internal ConvertKit errors are logged server-side only, never forwarded to the browser
+- Method restriction — `export const ALL` returns `405 Method Not Allowed` for all non-POST methods
+- No analytics or third-party scripts — zero external JS, no tracking surface
+
+---
+
+## Environment Variables
+
+All four variables must be set in the Vercel project dashboard (Settings → Environment Variables). Never commit real values.
+
+| Variable | Where to find it |
+|----------|-----------------|
+| `CONVERTKIT_API_KEY` | app.convertkit.com → Settings → API |
+| `CONVERTKIT_FORM_ID` | app.convertkit.com → Forms → your form → URL contains the ID |
+| `UPSTASH_REDIS_REST_URL` | console.upstash.com → your database → REST API tab |
+| `UPSTASH_REDIS_REST_TOKEN` | console.upstash.com → your database → REST API tab |
+
+See `.env.example` for the local development template.
+
+---
+
+## npm Audit Status
+
+Last run: 2026-02-27 — **0 vulnerabilities**
+
+- `@astrojs/vercel` is pinned to `8.0.4` (the last version before a path-to-regexp ReDoS regression was introduced in `>=8.0.5` via `@vercel/routing-utils`)
+- `"overrides": { "esbuild": ">=0.25.0" }` in `package.json` resolves a moderate esbuild dev-server advisory present in `8.0.4`
+- Run `npm audit` after any dependency update

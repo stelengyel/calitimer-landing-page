@@ -38,7 +38,7 @@ Read the style guide in full before writing any code. Every visual decision is d
 **Key details that need attention:**
 - ConvertKit v3 passes `api_key` as a body param (not an Authorization header)
 - ConvertKit returns HTTP 200 for some error states — inspect response body, not just status
-- No rate limiting on `/api/subscribe` — honeypot field is the only spam mitigation in v1
+- ~~No rate limiting on `/api/subscribe` — honeypot field is the only spam mitigation in v1~~ — resolved in Step 9
 - Style guide secondary button uses teal border `rgba(45,220,180,0.4)` — inconsistent with palette; use ember at reduced opacity instead
 
 **Doesn't scale well:**
@@ -91,9 +91,25 @@ Read the style guide in full before writing any code. Every visual decision is d
 - [x] Accessibility audit — WCAG AA contrast fixes: `--text-muted` (#5C4A3A, 2.3:1) replaced with `--text-secondary` (#B8A090, 8.6:1) on microcopy, hiw-sub, footer link, footer copy; `btn-loading` aria-hidden removed so button has accessible name "Sending…" during loading; success div gains `role="status" tabindex="-1"` + programmatic `focus()` for screen reader announcement; all form labels, focus rings, alt text, and ARIA landmarks confirmed present
 - [x] Lighthouse performance — removed `background-attachment: fixed` (forced full-page repaints on scroll); `height="auto"` HTML attributes replaced with correct integer heights (logo: 179px@140w, 153px@120w) for CLS prevention; `fetchpriority="high"` added to above-fold hero images
 
-### Step 9 — Deploy
+### Step 9 — Security Hardening ✅
+- [x] Install `@upstash/redis` and `@upstash/ratelimit`
+- [x] Create `src/middleware.ts` — IP-based sliding window rate limit (5 req / 60s) on `POST /api/subscribe`; returns `429` with `Retry-After` header; skips gracefully if Upstash env vars absent (local dev)
+- [x] Create `vercel.json` — CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security` applied to all routes
+- [x] Harden `src/pages/api/subscribe.ts`:
+  - Email length guard — 254 char max (RFC 5321), returns `422`
+  - JSON-only content type — non-JSON rejected with `415`
+  - `Cache-Control: no-store` on every response via shared `JSON_HEADERS` constant
+  - `CONVERTKIT_FORM_ID` digit validation — `/^\d+$/` guard before URL interpolation
+- [x] Create `.env.example` with placeholder values for all four required env vars
+- [x] Run `npm audit` — 0 vulnerabilities (pinned `@astrojs/vercel@8.0.4`, added `esbuild` override)
+- [x] Document all decisions in `SECURITY.md`
+
+> Upstash Redis credentials: create a free database at console.upstash.com → REST API tab.
+> Add `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` to Vercel project settings alongside the ConvertKit vars.
+
+### Step 10 — Deploy
 - [ ] Connect repo to Vercel
-- [ ] Set `CONVERTKIT_API_KEY` and `CONVERTKIT_FORM_ID` in Vercel project settings
+- [ ] Set all four env vars in Vercel project settings: `CONVERTKIT_API_KEY`, `CONVERTKIT_FORM_ID`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
 - [ ] Push to `main` — verify automatic deploy triggers
 - [ ] Connect custom domain (once decided)
 
@@ -101,6 +117,7 @@ Read the style guide in full before writing any code. Every visual decision is d
 
 ## Verification Checklist
 
+### Functionality
 - [ ] `npm run dev` — no console errors
 - [ ] All colors, fonts, spacing, buttons match style guide exactly
 - [ ] Logo renders at correct minimum size with clear space
@@ -109,10 +126,23 @@ Read the style guide in full before writing any code. Every visual decision is d
 - [ ] Submit with honeypot populated → silent 200, no ConvertKit entry
 - [ ] Submit invalid email → inline error shown
 - [ ] `npm run build && npm run preview` — clean build
+
+### Security
+- [ ] Rate limiting: 6 rapid `POST /api/subscribe` requests → 6th returns `429` with `Retry-After` header
+- [ ] Non-JSON request rejected: `Content-Type: text/plain` → `415`
+- [ ] Oversized email rejected: 255-char string → `422`
+- [ ] All `/api/*` responses include `Cache-Control: no-store`
+- [ ] Security headers present on live URL: `curl -I https://<domain>/` shows CSP, `X-Frame-Options`, HSTS, and the other four headers
+- [ ] `npm audit` — 0 vulnerabilities
+
+### Performance & Accessibility
 - [ ] Lighthouse: Performance ≥ 95, Accessibility 100
 - [ ] Mobile (375px): no horizontal scroll, tap targets ≥ 44px
 - [ ] Keyboard navigation works end-to-end
+
+### Deployment
 - [ ] Live Vercel URL works end-to-end
+- [ ] All four env vars set in Vercel project settings
 
 ---
 
@@ -133,6 +163,7 @@ calitimer-landing-page/
 │   │   └── Footer.astro
 │   ├── layouts/
 │   │   └── BaseLayout.astro
+│   ├── middleware.ts               # Rate limiting (Upstash) on POST /api/subscribe
 │   ├── pages/
 │   │   ├── index.astro
 │   │   ├── privacy.astro
@@ -145,6 +176,9 @@ calitimer-landing-page/
 ├── astro.config.mjs
 ├── tailwind.config.mjs
 ├── tsconfig.json
+├── vercel.json                     # HTTP security headers for all routes
 ├── .env                            # Local only, gitignored
+├── .env.example                    # Placeholder values for all required env vars
+├── SECURITY.md                     # Security decisions, services, and audit status
 └── package.json
 ```
