@@ -1,7 +1,7 @@
 Security Reference: CaliTimer Landing Page
 ==========================================
 
-Last reviewed: 2026-02-27
+Last reviewed: 2026-02-28
 Status: All findings resolved.
 
 ---
@@ -107,6 +107,18 @@ After reading `CONVERTKIT_FORM_ID` from env, a `/^\d+$/` guard verifies it conta
 **Severity addressed:** Baseline (pre-existing)
 
 A hidden `website` field is included in the form. It is CSS-hidden, `aria-hidden="true"`, and `tabindex="-1"` so real users never fill it. Bots that auto-populate form fields trigger a silent `200` response — they receive no signal that they were caught.
+
+---
+
+### 8. Astro `security.checkOrigin` Disabled
+**File:** `astro.config.mjs`
+**Severity addressed:** Compatibility (not a vulnerability)
+
+Astro's `security.checkOrigin` feature compares the `Origin` request header to the deployment host and rejects mismatches on POST requests with `403 Cross-site POST form submissions are forbidden`. The `@astrojs/vercel` adapter enables this check by default.
+
+Instagram's in-app browser (and similar IABs) sends a mismatched or `null` `Origin` on `fetch()` calls even when the page itself was loaded from the correct origin. This caused every form submission from an Instagram bio link to fail with a hard 403.
+
+`checkOrigin` is disabled in `astro.config.mjs` (`security: { checkOrigin: false }`). The endpoint is not left unprotected — the JSON-only content type requirement (control #4 above) provides equivalent CSRF protection: browsers cannot send `Content-Type: application/json` cross-site without a CORS preflight, and the endpoint emits no `Access-Control-Allow-Origin` header, so any preflight from a foreign origin is blocked by the browser before the request reaches the server. The `checkOrigin` header check was therefore redundant and too aggressive for in-app browser environments.
 
 ---
 
