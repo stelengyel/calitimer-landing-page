@@ -179,6 +179,20 @@ const { id = 'email-form' } = Astro.props;
 </style>
 
 <script>
+  // Slides the bottom toast into view then dismisses it after a delay.
+  function showToast() {
+    const toast = document.getElementById('success-toast') as HTMLElement | null;
+    if (!toast) return;
+    // Force-reset animation if called more than once (e.g. two forms on page).
+    toast.classList.remove('toast-in', 'toast-out');
+    void toast.offsetWidth; // trigger reflow to restart the animation
+    toast.classList.add('toast-in');
+    clearTimeout((window as any).__toastTimer);
+    (window as any).__toastTimer = setTimeout(() => {
+      toast.classList.replace('toast-in', 'toast-out');
+    }, 4500);
+  }
+
   // Astro deduplicates <script> tags — this runs once even when EmailForm
   // appears multiple times on the page. We find every instance by selector.
   function initForm(form: HTMLFormElement) {
@@ -224,6 +238,7 @@ const { id = 'email-form' } = Astro.props;
           form.hidden = true;
           successEl.hidden = false;
           successEl.focus();
+          showToast();
         } else {
           throw new Error(data.error ?? 'Something went wrong. Please try again.');
         }
@@ -266,6 +281,7 @@ const { id = 'email-form' } = Astro.props;
       const successEl = document.getElementById(`${form.id}-success`);
       if (successEl) successEl.hidden = false;
     });
+    showToast();
     // Clean up the URL so it doesn't look odd if the user shares or reloads.
     history.replaceState(null, '', location.pathname);
   } else if (params.get('err') === '1') {
