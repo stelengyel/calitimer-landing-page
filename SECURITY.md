@@ -1,7 +1,7 @@
 Security Reference: CaliTimer Landing Page
 ==========================================
 
-Last reviewed: 2026-02-28
+Last reviewed: 2026-02-28 (updated)
 Status: All findings resolved.
 
 ---
@@ -110,7 +110,17 @@ A hidden `website` field is included in the form. It is CSS-hidden, `aria-hidden
 
 ---
 
-### 8. Astro `security.checkOrigin` Disabled
+### 8. Native Form Submission Fallback
+**Files:** `src/pages/api/subscribe.ts`, `src/components/EmailForm.astro`
+**Severity addressed:** Compatibility (not a vulnerability)
+
+Instagram's in-app browser (and similar IABs: Facebook, TikTok, Twitter/X, LinkedIn) does not reliably fire the JavaScript `submit` event handler. The form falls back to a native HTML POST, sending `application/x-www-form-urlencoded` instead of JSON and navigating away to the raw API response.
+
+The endpoint now accepts both `application/json` (the normal JS fetch path) and `application/x-www-form-urlencoded` (the native form fallback). For native submissions, all responses are `303 See Other` redirects back to the page (`/?thanks=1` on success, `/?err=1` on any error) — 303 specifically instructs the browser to GET the redirect target rather than re-POST to it. On page load, `EmailForm.astro` checks for these params, shows the appropriate success or error state, then cleans the param from the URL with `history.replaceState`.
+
+The JS fetch path for all standard browsers is unchanged.
+
+### 9. Astro `security.checkOrigin` Disabled
 **File:** `astro.config.mjs`
 **Severity addressed:** Compatibility (not a vulnerability)
 

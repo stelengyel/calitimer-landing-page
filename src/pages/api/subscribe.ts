@@ -13,71 +13,93 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+// 303 See Other redirect used after native (non-JS) form submissions so the
+// browser GETs the redirect target rather than re-POSTing to it.
+function redirect(path: string): Response {
+  return new Response(null, {
+    status: 303,
+    headers: { Location: path, 'Cache-Control': 'no-store' },
+  });
+}
+
 export const POST: APIRoute = async ({ request }) => {
-  // Accept only JSON; reject other content types with 415.
   const contentType = request.headers.get('content-type') ?? '';
-  if (!contentType.includes('application/json')) {
+  const isJson = contentType.includes('application/json');
+  const isForm = contentType.includes('application/x-www-form-urlencoded');
+
+  // Reject anything that isn't JSON or a native form POST.
+  if (!isJson && !isForm) {
     return new Response(
-      JSON.stringify({ error: 'Unsupported Media Type. Send application/json.' }),
+      JSON.stringify({ error: 'Unsupported Media Type.' }),
       { status: 415, headers: JSON_HEADERS }
     );
   }
 
-  let body: Record<string, string>;
-  try {
-    body = await request.json();
-  } catch {
-    return new Response(
-      JSON.stringify({ error: 'Invalid request body.' }),
-      { status: 400, headers: JSON_HEADERS }
-    );
+  let honeypot = '';
+  let email = '';
+
+  if (isJson) {
+    let body: Record<string, string>;
+    try {
+      body = await request.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body.' }),
+        { status: 400, headers: JSON_HEADERS }
+      );
+    }
+    honeypot = body.website ?? '';
+    email = (body.email ?? '').trim().toLowerCase();
+  } else {
+    // Native form submission (e.g. Instagram in-app browser where the JS
+    // fetch handler doesn't intercept the submit event).
+    let fd: FormData;
+    try {
+      fd = await request.formData();
+    } catch {
+      return redirect('/?err=1');
+    }
+    honeypot = (fd.get('website') as string | null) ?? '';
+    email = ((fd.get('email') as string | null) ?? '').trim().toLowerCase();
   }
 
   // Honeypot check — bots fill the hidden `website` field; real users don't.
-  // Return a silent 200 so bots don't know they were caught.
-  if (body.website) {
-    return new Response(
-      JSON.stringify({ ok: true }),
-      { status: 200, headers: JSON_HEADERS }
-    );
+  // Return a silent success so bots don't know they were caught.
+  if (honeypot) {
+    return isJson
+      ? new Response(JSON.stringify({ ok: true }), { status: 200, headers: JSON_HEADERS })
+      : redirect('/?thanks=1');
   }
-
-  const email = (body.email ?? '').trim().toLowerCase();
 
   // RFC 5321 maximum email length is 254 characters.
   if (email.length > 254) {
-    return new Response(
-      JSON.stringify({ error: 'Please enter a valid email address.' }),
-      { status: 422, headers: JSON_HEADERS }
-    );
+    return isJson
+      ? new Response(JSON.stringify({ error: 'Please enter a valid email address.' }), { status: 422, headers: JSON_HEADERS })
+      : redirect('/?err=1');
   }
 
   if (!email || !isValidEmail(email)) {
-    return new Response(
-      JSON.stringify({ error: 'Please enter a valid email address.' }),
-      { status: 422, headers: JSON_HEADERS }
-    );
+    return isJson
+      ? new Response(JSON.stringify({ error: 'Please enter a valid email address.' }), { status: 422, headers: JSON_HEADERS })
+      : redirect('/?err=1');
   }
 
   const apiKey = import.meta.env.CONVERTKIT_API_KEY;
   const formId = import.meta.env.CONVERTKIT_FORM_ID;
 
   if (!apiKey || !formId) {
-    // Misconfigured server — log server-side, return generic error to client.
     console.error('[subscribe] Missing CONVERTKIT_API_KEY or CONVERTKIT_FORM_ID');
-    return new Response(
-      JSON.stringify({ error: 'Server configuration error. Please try again later.' }),
-      { status: 500, headers: JSON_HEADERS }
-    );
+    return isJson
+      ? new Response(JSON.stringify({ error: 'Server configuration error. Please try again later.' }), { status: 500, headers: JSON_HEADERS })
+      : redirect('/?err=1');
   }
 
   // Guard against a malformed CONVERTKIT_FORM_ID hitting the wrong endpoint.
   if (!/^\d+$/.test(formId)) {
     console.error('[subscribe] CONVERTKIT_FORM_ID is not a numeric ID:', formId);
-    return new Response(
-      JSON.stringify({ error: 'Server configuration error. Please try again later.' }),
-      { status: 500, headers: JSON_HEADERS }
-    );
+    return isJson
+      ? new Response(JSON.stringify({ error: 'Server configuration error. Please try again later.' }), { status: 500, headers: JSON_HEADERS })
+      : redirect('/?err=1');
   }
 
   let ckResponse: Response;
@@ -93,10 +115,9 @@ export const POST: APIRoute = async ({ request }) => {
     );
   } catch (err) {
     console.error('[subscribe] ConvertKit fetch failed:', err);
-    return new Response(
-      JSON.stringify({ error: 'Network error. Please try again.' }),
-      { status: 502, headers: JSON_HEADERS }
-    );
+    return isJson
+      ? new Response(JSON.stringify({ error: 'Network error. Please try again.' }), { status: 502, headers: JSON_HEADERS })
+      : redirect('/?err=1');
   }
 
   // ConvertKit can return HTTP 200 with error payloads in some cases,
@@ -106,24 +127,21 @@ export const POST: APIRoute = async ({ request }) => {
     ckBody = await ckResponse.json();
   } catch {
     console.error('[subscribe] Failed to parse ConvertKit response');
-    return new Response(
-      JSON.stringify({ error: 'Unexpected response from email service. Please try again.' }),
-      { status: 502, headers: JSON_HEADERS }
-    );
+    return isJson
+      ? new Response(JSON.stringify({ error: 'Unexpected response from email service. Please try again.' }), { status: 502, headers: JSON_HEADERS })
+      : redirect('/?err=1');
   }
 
   if (!ckResponse.ok || ckBody.error) {
     console.error('[subscribe] ConvertKit error:', ckResponse.status, ckBody);
-    return new Response(
-      JSON.stringify({ error: 'Could not subscribe. Please try again.' }),
-      { status: 422, headers: JSON_HEADERS }
-    );
+    return isJson
+      ? new Response(JSON.stringify({ error: 'Could not subscribe. Please try again.' }), { status: 422, headers: JSON_HEADERS })
+      : redirect('/?err=1');
   }
 
-  return new Response(
-    JSON.stringify({ ok: true }),
-    { status: 200, headers: JSON_HEADERS }
-  );
+  return isJson
+    ? new Response(JSON.stringify({ ok: true }), { status: 200, headers: JSON_HEADERS })
+    : redirect('/?thanks=1');
 };
 
 // Return 405 for all other HTTP methods.

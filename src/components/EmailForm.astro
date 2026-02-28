@@ -255,4 +255,27 @@ const { id = 'email-form' } = Astro.props;
   document
     .querySelectorAll<HTMLFormElement>('form[action="/api/subscribe"]')
     .forEach(initForm);
+
+  // Handle redirect-back after native form submission (e.g. Instagram in-app
+  // browser, where the JS submit handler doesn't intercept the POST and the
+  // browser navigates to the API, which redirects back here with a param).
+  const params = new URLSearchParams(location.search);
+  if (params.get('thanks') === '1') {
+    document.querySelectorAll<HTMLFormElement>('form[action="/api/subscribe"]').forEach(form => {
+      form.hidden = true;
+      const successEl = document.getElementById(`${form.id}-success`);
+      if (successEl) successEl.hidden = false;
+    });
+    // Clean up the URL so it doesn't look odd if the user shares or reloads.
+    history.replaceState(null, '', location.pathname);
+  } else if (params.get('err') === '1') {
+    document.querySelectorAll<HTMLFormElement>('form[action="/api/subscribe"]').forEach(form => {
+      const errorEl = document.getElementById(`${form.id}-error`);
+      if (errorEl) {
+        errorEl.textContent = 'Something went wrong. Please try again.';
+        errorEl.hidden = false;
+      }
+    });
+    history.replaceState(null, '', location.pathname);
+  }
 </script>
