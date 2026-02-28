@@ -235,8 +235,12 @@ const { id = 'email-form' } = Astro.props;
         const data: { ok?: boolean; error?: string } = await res.json();
 
         if (res.ok && data.ok) {
-          form.hidden = true;
-          successEl.hidden = false;
+          // Update every form on the page to the success state.
+          document.querySelectorAll<HTMLFormElement>('form[action="/api/subscribe"]').forEach(f => {
+            f.hidden = true;
+            const s = document.getElementById(`${f.id}-success`);
+            if (s) s.hidden = false;
+          });
           successEl.focus();
           showToast();
         } else {
