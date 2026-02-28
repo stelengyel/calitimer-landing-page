@@ -8,7 +8,7 @@ interface Props {
 }
 
 const {
-  title = 'CaliTimer — Train Smarter. Just Hold.',
+  title = 'Get the CaliTimer app.',
   description = 'CaliTimer uses on-device computer vision to automatically detect and time calisthenics static skills. Hands-free. No tapping required. Join the waitlist.',
   canonicalUrl = Astro.url.href,
 } = Astro.props;
@@ -43,7 +43,8 @@ const {
     <meta name="twitter:image" content="/og-image.png" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/app-icon-dark.png" />
+    <link rel="apple-touch-icon" href="/app-icon-dark.png" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 
     <!-- No tracking, analytics, or third-party scripts per PRD -->
@@ -63,7 +64,7 @@ const {
   </body>
 </html>
 
-<style>
+<style is:global>
   #success-toast {
     position: fixed;
     bottom: calc(28px + env(safe-area-inset-bottom, 0px));
